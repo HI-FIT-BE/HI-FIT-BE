@@ -21,7 +21,31 @@ public class User {
     private int age;
     private Double height;
     private Double weight;
-
+    private int stamp;
     @Enumerated(EnumType.STRING)
     private Sarcopenia sarcopenia;
+
+    public void addStamp() {
+
+        this.stamp++;
+
+        if (this.stamp > 20) {
+            throw new IllegalArgumentException("[ERROR] 스탬프 최대 개수를 초과했습니다.");
+        }
+    }
+
+    public void updateHeight(double height) {
+
+        this.height = height;
+    }
+
+    public void updateWeight(double weight) {
+
+        this.weight = weight;
+    }
+
+    public void updateSarcopenia(Sarcopenia sarcopenia) {
+
+        this.sarcopenia = sarcopenia;
+    }
 }

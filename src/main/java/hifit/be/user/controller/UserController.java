@@ -1,13 +1,19 @@
 package hifit.be.user.controller;
 
+import hifit.be.user.dto.request.HeightRequest;
 import hifit.be.user.dto.request.LoginCodeRequest;
-import hifit.be.user.dto.response.KakaoLoginResponse;
+import hifit.be.user.dto.request.SarcopeniaRequest;
+import hifit.be.user.dto.request.WeightRequest;
+import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
 import hifit.be.user.dto.token.OauthToken;
+import hifit.be.user.entity.Sarcopenia;
+import hifit.be.user.entity.User;
 import hifit.be.user.exception.InvalidLoginCodeException;
 import hifit.be.user.service.OauthLoginService;
 import hifit.be.user.service.UserService;
 import hifit.be.util.CustomResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import javax.servlet.http.HttpSession;
 
+@Tag(name = "User", description = "사용자 API")
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -22,6 +29,16 @@ public class UserController {
     private final OauthLoginService oauthLoginService;
     private final UserService userService;
     private final KakaoOauthInfo kakaoOauthInfo;
+    private User mockUser = User.builder()
+            .id(1L)
+            .socialId(123456789L)
+            .name("mockUser")
+            .age(43)
+            .phoneNumber("010-1234-5678")
+            .weight(70.0)
+            .height(175.0)
+            .sarcopenia(Sarcopenia.HIGH)
+            .build();
 
 
     @PostMapping("/users/oauth/login")
@@ -50,7 +67,7 @@ public class UserController {
     }
 
     @PostMapping("/users/logout")
-    public ResponseEntity<CustomResponse> upbrellaLogout(HttpSession session) {
+    public ResponseEntity<CustomResponse> logout(HttpSession session) {
 
         session.invalidate();
 
@@ -63,4 +80,121 @@ public class UserController {
                         null));
     }
 
+    @GetMapping("/users/workoutInfo")
+    public ResponseEntity<CustomResponse<UserWorkoutInfo>> getWorkoutInfo(HttpSession session) {
+
+        //TODO : 세션에서 조회하도록 수정
+        UserWorkoutInfo userWorkoutInfo = userService.findUserWorkoutInfo(mockUser.getId());
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 운동 현황 정보 조회 성공",
+                        userWorkoutInfo));
+    }
+
+    @GetMapping("/users/bodyInfo")
+    public ResponseEntity<CustomResponse<UserBodyInfo>> getBodyInfo(HttpSession session) {
+
+        //TODO : 세션에서 조회하도록 수정
+        UserBodyInfo userBodyInfo = userService.findBodyInfo(mockUser.getId());
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 체중, BMI 정보 조회 (현재, 목표) 성공",
+                        userBodyInfo));
+    }
+
+    @GetMapping("/users/surveyInfo")
+    public ResponseEntity<CustomResponse<UserSurveyInfo>> getSurveyInfo(HttpSession session) {
+
+        //TODO : 세션에서 조회하도록 수정
+        UserSurveyInfo userSurveyInfo = userService.findSurveyInfo(mockUser.getId());
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "설문지에 필요한 유저 정보 조회 성공",
+                        userSurveyInfo));
+    }
+
+    @GetMapping("/users/healthStatusInfo")
+    public ResponseEntity<CustomResponse<UserHealthStatusInfo>> getHealthStatusInfo(HttpSession session) {
+
+        //TODO : 세션에서 조회하도록 수정
+        UserHealthStatusInfo userHealthStatusInfo = userService.findHealthStatusInfo(mockUser.getId());
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 설문 결과 조회 성공",
+                        userHealthStatusInfo));
+    }
+
+    @PatchMapping("/users/stamps")
+    public ResponseEntity<CustomResponse> addStamp(HttpSession session) {
+
+        //TODO : 세션에서 조회하도록 수정
+        userService.addStamp(mockUser.getId());
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 스탬프 적립 성공",
+                        null));
+    }
+
+    @PatchMapping("/users/height")
+    public ResponseEntity<CustomResponse> updateHeight(HttpSession session, @RequestBody HeightRequest heightRequest) {
+
+        //TODO : 세션에서 조회하도록 수정
+        userService.updateHeight(mockUser.getId(), heightRequest.getHeight());
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 키 업데이트 성공",
+                        null));
+    }
+
+    @PatchMapping("/users/weight")
+    public ResponseEntity<CustomResponse> updateWeight(HttpSession session, @RequestBody WeightRequest weightRequest) {
+
+        //TODO : 세션에서 조회하도록 수정
+        userService.updateWeight(mockUser.getId(), weightRequest.getWeight());
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 몸무게 업데이트 성공",
+                        null));
+    }
+
+    @PatchMapping("/users/sarcopenia")
+    public ResponseEntity<CustomResponse> updateSarcopenia(HttpSession session, @RequestBody SarcopeniaRequest sarcopeniaRequest) {
+
+        //TODO : 세션에서 조회하도록 수정
+        userService.updateSarcopenia(mockUser.getId(), sarcopeniaRequest.getSarcopenia());
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 근감소증 상태 업데이트 성공",
+                        null));
+    }
 }
