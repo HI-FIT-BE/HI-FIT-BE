@@ -37,7 +37,8 @@ public class UserController {
 
         KakaoLoginResponse kakaoLoggedInUser = oauthLoginService.processKakaoLogin(kakaoAccessToken.getAccessToken(), kakaoOauthInfo.getLoginUri());
 
-        System.out.println(kakaoLoggedInUser.getId() );
+        // TODO : DB에서 없으면 회원가입, 있으면 로그인
+        // TODO : 세션 설정
 
         return ResponseEntity
                 .ok()
