@@ -51,12 +51,25 @@ public class UserService {
 
     public UserBodyInfo findBodyInfo(Long id) {
 
-        return UserBodyInfo.of(findById(id));
+        double targetBmi = 23.0;
+
+        HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
+        // TODO: null 처리
+        Double currentWeight = healthInfo.getWeight();
+        Double currentHeight = healthInfo.getHeight();
+
+        Double currentBmi = calculateBMI(currentHeight, currentWeight);
+        Double targetWeight = calculateTargetWeight(currentHeight, 23.0);
+
+        return UserBodyInfo.of(currentBmi, currentWeight, targetBmi, targetWeight);
     }
 
+    @Transactional
     public UserSurveyInfo findSurveyInfo(Long id) {
 
-        return UserSurveyInfo.of(findById(id));
+        HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
+
+        return UserSurveyInfo.of(healthInfo);
     }
 
     @Transactional
@@ -86,5 +99,15 @@ public class UserService {
 
         HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
         healthInfo.updateSarcopenia(sarcopenia);
+    }
+
+    public double calculateBMI(double height, double weight) {
+
+        return weight / (height * height) * 10000;
+    }
+
+    public double calculateTargetWeight(double heightInMeters, double targetBMI) {
+
+        return targetBMI * (heightInMeters * heightInMeters) / 10000;
     }
 }

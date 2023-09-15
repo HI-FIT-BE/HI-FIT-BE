@@ -13,13 +13,13 @@ public class UserHealthStatusInfo {
 
     private Gender gender;
     private String name;
-    private int age;
-    private double height;
-    private double weight;
-    private double systolicBloodPressure;
-    private double diastolicBloodPressure;
-    private int heartRate;
-    private double waistSize;
+    private Integer age;
+    private Double height;
+    private Double weight;
+    private Double systolicBloodPressure;
+    private Double diastolicBloodPressure;
+    private Integer heartRate;
+    private Double waistSize;
     private Sarcopenia sarcopenia;
 
     public static UserHealthStatusInfo of(User user, HealthInformation healthInformation) {
