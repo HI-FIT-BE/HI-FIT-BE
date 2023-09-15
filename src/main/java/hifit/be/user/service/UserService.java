@@ -1,23 +1,25 @@
 package hifit.be.user.service;
 
+import hifit.be.user.dto.request.HealthInfoRequest;
 import hifit.be.user.dto.response.UserBodyInfo;
 import hifit.be.user.dto.response.UserHealthStatusInfo;
 import hifit.be.user.dto.response.UserSurveyInfo;
 import hifit.be.user.dto.response.UserWorkoutInfo;
+import hifit.be.user.entity.HealthInformation;
 import hifit.be.user.entity.Sarcopenia;
 import hifit.be.user.entity.User;
+import hifit.be.user.repository.HealthInformationRepository;
 import hifit.be.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final HealthInformationRepository healthInformationRepository;
 
     public User findBySocialId(Long socialId) {
 
@@ -28,6 +30,12 @@ public class UserService {
     public User findById(Long id) {
 
         return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 존재하지 않는 회원입니다. 회원 가입을 해주세요."));
+    }
+
+    public HealthInformation findByUserIdFromHealthInfo(Long id) {
+
+        return healthInformationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("[ERROR] 존재하지 않는 회원입니다. 회원 가입을 해주세요."));
     }
 
@@ -51,9 +59,11 @@ public class UserService {
         return UserSurveyInfo.of(findById(id));
     }
 
+    @Transactional
     public UserHealthStatusInfo findHealthStatusInfo(Long id) {
 
-        return UserHealthStatusInfo.of(findById(id));
+        HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
+        return UserHealthStatusInfo.of(healthInfo.getUser(), healthInfo);
     }
 
     @Transactional
@@ -65,23 +75,16 @@ public class UserService {
     }
 
     @Transactional
-    public void updateHeight(Long id, double height) {
+    public void updateHealthInfo(Long id, HealthInfoRequest healthInfoRequest) {
 
-        User user = findById(id);
-        user.updateHeight(height);
-    }
-
-    @Transactional
-    public void updateWeight(Long id, double weight) {
-
-        User user = findById(id);
-        user.updateWeight(weight);
+        HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
+        healthInfo.updateHealthInfo(healthInfoRequest);
     }
 
     @Transactional
     public void updateSarcopenia(Long id, Sarcopenia sarcopenia) {
 
-        User user = findById(id);
-        user.updateSarcopenia(sarcopenia);
+        HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
+        healthInfo.updateSarcopenia(sarcopenia);
     }
 }
