@@ -17,8 +17,13 @@ public class UserBodyInfo {
     private Double targetBmi;
     private Double targetWeight;
 
-    public static UserBodyInfo of(User user) {
-        //TODO : BMI 계산, 목표 체중, BMI 계산
-        return null;
+    public static UserBodyInfo of(Double currentBmi, Double currentWeight, Double targetBmi, Double targetWeight) {
+
+        return UserBodyInfo.builder()
+                .currentBmi(currentBmi)
+                .currentWeight(currentWeight)
+                .targetBmi(targetBmi)
+                .targetWeight(targetWeight)
+                .build();
     }
 }

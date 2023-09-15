@@ -1,12 +1,10 @@
 package hifit.be.user.controller;
 
-import hifit.be.user.dto.request.HeightRequest;
-import hifit.be.user.dto.request.LoginCodeRequest;
-import hifit.be.user.dto.request.SarcopeniaRequest;
-import hifit.be.user.dto.request.WeightRequest;
+import hifit.be.user.dto.request.*;
 import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
 import hifit.be.user.dto.token.OauthToken;
+import hifit.be.user.entity.Gender;
 import hifit.be.user.entity.Sarcopenia;
 import hifit.be.user.entity.User;
 import hifit.be.user.exception.InvalidLoginCodeException;
@@ -34,10 +32,9 @@ public class UserController {
             .socialId(123456789L)
             .name("mockUser")
             .age(43)
+            .gender(Gender.MALE)
             .phoneNumber("010-1234-5678")
-            .weight(70.0)
-            .height(175.0)
-            .sarcopenia(Sarcopenia.HIGH)
+            .stamp(0)
             .build();
 
 
@@ -155,31 +152,19 @@ public class UserController {
                         null));
     }
 
-    @PatchMapping("/users/height")
-    public ResponseEntity<CustomResponse> updateHeight(HttpSession session, @RequestBody HeightRequest heightRequest) {
+    @PatchMapping("/users/healthInfo")
+    public ResponseEntity<CustomResponse> updateHealthInfo(HttpSession session, @RequestBody HealthInfoRequest healthInfo) {
 
-        //TODO : 세션에서 조회하도록 수정
-        userService.updateHeight(mockUser.getId(), heightRequest.getHeight());
+        //TODO: 세션에서 조회하도록 수정
+        long id = 1L;
+        userService.updateHealthInfo(id, healthInfo);
+
         return ResponseEntity
                 .ok()
                 .body(new CustomResponse<>(
                         "success",
                         200,
-                        "유저 키 업데이트 성공",
-                        null));
-    }
-
-    @PatchMapping("/users/weight")
-    public ResponseEntity<CustomResponse> updateWeight(HttpSession session, @RequestBody WeightRequest weightRequest) {
-
-        //TODO : 세션에서 조회하도록 수정
-        userService.updateWeight(mockUser.getId(), weightRequest.getWeight());
-        return ResponseEntity
-                .ok()
-                .body(new CustomResponse<>(
-                        "success",
-                        200,
-                        "유저 몸무게 업데이트 성공",
+                        "유저 건강 정보 업데이트 성공",
                         null));
     }
 

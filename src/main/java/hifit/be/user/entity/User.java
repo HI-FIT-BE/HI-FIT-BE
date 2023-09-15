@@ -17,13 +17,11 @@ public class User {
     private Long socialId;
     private String name;
     private String phoneNumber;
-    private String gender;
-    private int age;
-    private Double height;
-    private Double weight;
-    private int stamp;
     @Enumerated(EnumType.STRING)
-    private Sarcopenia sarcopenia;
+    private Gender gender;
+    private int age;
+    private int stamp;
+
 
     public void addStamp() {
 
@@ -34,18 +32,5 @@ public class User {
         }
     }
 
-    public void updateHeight(double height) {
 
-        this.height = height;
-    }
-
-    public void updateWeight(double weight) {
-
-        this.weight = weight;
-    }
-
-    public void updateSarcopenia(Sarcopenia sarcopenia) {
-
-        this.sarcopenia = sarcopenia;
-    }
 }
