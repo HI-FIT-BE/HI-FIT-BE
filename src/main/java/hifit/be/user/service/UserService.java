@@ -1,10 +1,7 @@
 package hifit.be.user.service;
 
 import hifit.be.user.dto.request.HealthInfoRequest;
-import hifit.be.user.dto.response.UserBodyInfo;
-import hifit.be.user.dto.response.UserHealthStatusInfo;
-import hifit.be.user.dto.response.UserSurveyInfo;
-import hifit.be.user.dto.response.UserWorkoutInfo;
+import hifit.be.user.dto.response.*;
 import hifit.be.user.entity.HealthInformation;
 import hifit.be.user.entity.Sarcopenia;
 import hifit.be.user.entity.User;
@@ -35,7 +32,7 @@ public class UserService {
 
     public HealthInformation findByUserIdFromHealthInfo(Long id) {
 
-        return healthInformationRepository.findById(id)
+        return healthInformationRepository.findByUserId(id)
                 .orElseThrow(() -> new IllegalArgumentException("[ERROR] 존재하지 않는 회원입니다. 회원 가입을 해주세요."));
     }
 
@@ -56,6 +53,12 @@ public class UserService {
         HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
         // TODO: null 처리
         Double currentWeight = healthInfo.getWeight();
+
+        if (currentWeight == null) {
+            return UserBodyInfo.of(null, null, null, null);
+        }
+
+
         Double currentHeight = healthInfo.getHeight();
 
         Double currentBmi = calculateBMI(currentHeight, currentWeight);
@@ -109,5 +112,27 @@ public class UserService {
     public double calculateTargetWeight(double heightInMeters, double targetBMI) {
 
         return targetBMI * (heightInMeters * heightInMeters) / 10000;
+    }
+
+    public long processLogin(KakaoLoginResponse kakaoLoginResponse) {
+
+        User user;
+        try{
+            // DB에 이미 존재할 경우 로그인 진행
+            user = findBySocialId(kakaoLoginResponse.getId());
+        } catch (IllegalArgumentException e) {
+            // DB에 없을 경우 회원가입
+            user = userRepository.save(User.builder()
+                    .socialId(kakaoLoginResponse.getId())
+                    .name(kakaoLoginResponse.getKakaoAccount().getName())
+                    .phoneNumber(kakaoLoginResponse.getKakaoAccount().getPhoneNumber())
+                    .build());
+
+            healthInformationRepository.save(HealthInformation.builder()
+                    .user(user)
+                    .build());
+        }
+
+        return user.getId();
     }
 }

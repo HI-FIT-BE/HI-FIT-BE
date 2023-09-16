@@ -4,9 +4,6 @@ import hifit.be.user.dto.request.*;
 import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
 import hifit.be.user.dto.token.OauthToken;
-import hifit.be.user.entity.Gender;
-import hifit.be.user.entity.Sarcopenia;
-import hifit.be.user.entity.User;
 import hifit.be.user.exception.InvalidLoginCodeException;
 import hifit.be.user.service.OauthLoginService;
 import hifit.be.user.service.UserService;
@@ -27,22 +24,11 @@ public class UserController {
     private final OauthLoginService oauthLoginService;
     private final UserService userService;
     private final KakaoOauthInfo kakaoOauthInfo;
-    private User mockUser = User.builder()
-            .id(1L)
-            .socialId(123456789L)
-            .name("mockUser")
-            .age(43)
-            .gender(Gender.MALE)
-            .phoneNumber("010-1234-5678")
-            .stamp(0)
-            .build();
-
 
     @PostMapping("/users/oauth/login")
     public ResponseEntity<CustomResponse> kakaoLogin(HttpSession session, @RequestBody LoginCodeRequest code) {
 
         OauthToken kakaoAccessToken;
-
         try {
             kakaoAccessToken = oauthLoginService.getOauthToken(code.getCode(), kakaoOauthInfo);
         } catch (HttpClientErrorException e) {
@@ -51,8 +37,9 @@ public class UserController {
 
         KakaoLoginResponse kakaoLoggedInUser = oauthLoginService.processKakaoLogin(kakaoAccessToken.getAccessToken(), kakaoOauthInfo.getLoginUri());
 
-        // TODO : DB에서 없으면 회원가입, 있으면 로그인
-        // TODO : 세션 설정
+        long userId = userService.processLogin(kakaoLoggedInUser);
+
+        session.setAttribute("userId", userId);
 
         return ResponseEntity
                 .ok()
@@ -78,10 +65,9 @@ public class UserController {
     }
 
     @GetMapping("/users/workoutInfo")
-    public ResponseEntity<CustomResponse<UserWorkoutInfo>> getWorkoutInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserWorkoutInfo>> getWorkoutInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserWorkoutInfo userWorkoutInfo = userService.findUserWorkoutInfo(mockUser.getId());
+        UserWorkoutInfo userWorkoutInfo = userService.findUserWorkoutInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -93,10 +79,9 @@ public class UserController {
     }
 
     @GetMapping("/users/bodyInfo")
-    public ResponseEntity<CustomResponse<UserBodyInfo>> getBodyInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserBodyInfo>> getBodyInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserBodyInfo userBodyInfo = userService.findBodyInfo(mockUser.getId());
+        UserBodyInfo userBodyInfo = userService.findBodyInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -108,10 +93,9 @@ public class UserController {
     }
 
     @GetMapping("/users/surveyInfo")
-    public ResponseEntity<CustomResponse<UserSurveyInfo>> getSurveyInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserSurveyInfo>> getSurveyInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserSurveyInfo userSurveyInfo = userService.findSurveyInfo(mockUser.getId());
+        UserSurveyInfo userSurveyInfo = userService.findSurveyInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -123,10 +107,9 @@ public class UserController {
     }
 
     @GetMapping("/users/healthStatusInfo")
-    public ResponseEntity<CustomResponse<UserHealthStatusInfo>> getHealthStatusInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserHealthStatusInfo>> getHealthStatusInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserHealthStatusInfo userHealthStatusInfo = userService.findHealthStatusInfo(mockUser.getId());
+        UserHealthStatusInfo userHealthStatusInfo = userService.findHealthStatusInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -138,10 +121,9 @@ public class UserController {
     }
 
     @PatchMapping("/users/stamps")
-    public ResponseEntity<CustomResponse> addStamp(HttpSession session) {
+    public ResponseEntity<CustomResponse> addStamp(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        userService.addStamp(mockUser.getId());
+        userService.addStamp(userId);
 
         return ResponseEntity
                 .ok()
@@ -153,11 +135,9 @@ public class UserController {
     }
 
     @PatchMapping("/users/healthInfo")
-    public ResponseEntity<CustomResponse> updateHealthInfo(HttpSession session, @RequestBody HealthInfoRequest healthInfo) {
+    public ResponseEntity<CustomResponse> updateHealthInfo(@RequestAttribute Long userId, @RequestBody HealthInfoRequest healthInfo) {
 
-        //TODO: 세션에서 조회하도록 수정
-        long id = 1L;
-        userService.updateHealthInfo(id, healthInfo);
+        userService.updateHealthInfo(userId, healthInfo);
 
         return ResponseEntity
                 .ok()
@@ -169,10 +149,9 @@ public class UserController {
     }
 
     @PatchMapping("/users/sarcopenia")
-    public ResponseEntity<CustomResponse> updateSarcopenia(HttpSession session, @RequestBody SarcopeniaRequest sarcopeniaRequest) {
+    public ResponseEntity<CustomResponse> updateSarcopenia(@RequestAttribute Long userId, @RequestBody SarcopeniaRequest sarcopeniaRequest) {
 
-        //TODO : 세션에서 조회하도록 수정
-        userService.updateSarcopenia(mockUser.getId(), sarcopeniaRequest.getSarcopenia());
+        userService.updateSarcopenia(userId, sarcopeniaRequest.getSarcopenia());
 
         return ResponseEntity
                 .ok()
