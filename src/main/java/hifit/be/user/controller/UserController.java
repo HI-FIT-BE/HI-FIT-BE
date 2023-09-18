@@ -165,4 +165,18 @@ public class UserController {
                         "유저 운동 기록 조회 성공",
                         exercises));
     }
+
+    @GetMapping("/users/diet")
+    public ResponseEntity<CustomResponse<DietResponse>> getDiet(@RequestAttribute Long userId) {
+
+        DietResponse diet = userService.findDiet(userId);
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 식단 조회 성공",
+                        diet));
+    }
 }

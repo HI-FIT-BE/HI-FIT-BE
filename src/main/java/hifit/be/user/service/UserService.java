@@ -72,7 +72,7 @@ public class UserService {
         Double currentHeight = healthInfo.getHeight();
 
         Double currentBmi = calculateBMI(currentHeight, currentWeight);
-        Double targetWeight = calculateTargetWeight(currentHeight, 23.0);
+        Double targetWeight = calculateTargetWeight(currentHeight);
 
         return UserBodyInfo.of(currentBmi, currentWeight, targetBmi, targetWeight);
     }
@@ -128,9 +128,9 @@ public class UserService {
         return weight / (height * height) * 10000;
     }
 
-    public double calculateTargetWeight(double heightInMeters, double targetBMI) {
+    public double calculateTargetWeight(double heightInMeters) {
 
-        return targetBMI * (heightInMeters * heightInMeters) / 10000;
+        return 23 * (heightInMeters * heightInMeters) / 10000;
     }
 
     public long processLogin(KakaoLoginResponse kakaoLoginResponse) {
@@ -178,5 +178,40 @@ public class UserService {
         }
 
         return exerciseResponses;
+    }
+
+    public DietResponse findDiet(Long userId) {
+
+        HealthInformation healthInfo = findByUserIdFromHealthInfo(userId);
+        Double weight = healthInfo.getWeight();
+
+
+        if (weight == null) {
+            return DietResponse.builder().build();
+        }
+        Double height = healthInfo.getHeight();
+        double targetWeight = calculateTargetWeight(height);
+
+        System.out.println(targetWeight);
+
+        // 계란 두부는 8g, 닭가슴살 100g으로 계산
+        return DietResponse.builder()
+                .calorie(calculateCalorie(targetWeight, height))
+                .protein(calculateProtein(targetWeight))
+                .eggCount((int) Math.ceil(calculateProtein(targetWeight) / 8) + 1)
+                .tofuCount((int) Math.ceil(calculateProtein(targetWeight) / 8) + 1)
+                .chickenBreastCount((int) Math.ceil(calculateProtein(targetWeight) / 20) + 1)
+                .build();
+    }
+
+    // 하루 권장 칼로리 계산
+    private int calculateCalorie(double weight, double height) {
+
+        return (int) (weight * (height - 100) * 0.9 * 30 / 100);
+    }
+
+    private int calculateProtein(double weight) {
+
+        return (int) (weight * 1.2);
     }
 }
