@@ -10,14 +10,17 @@ import hifit.be.user.service.UserService;
 import hifit.be.util.CustomResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.servlet.http.HttpSession;
+import java.util.Date;
+import java.util.List;
 
 @Tag(name = "User", description = "사용자 API")
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 public class UserController {
 
@@ -26,8 +29,8 @@ public class UserController {
     private final KakaoOauthInfo kakaoOauthInfo;
 
     @PostMapping("/users/oauth/login")
-    public ResponseEntity<CustomResponse> kakaoLogin(HttpSession session, @RequestBody LoginCodeRequest code) {
-
+    public ResponseEntity<CustomResponse<JwtResponse>> kakaoLogin(@RequestBody LoginCodeRequest code) {
+        log.info("로그인 시작");
         OauthToken kakaoAccessToken;
         try {
             kakaoAccessToken = oauthLoginService.getOauthToken(code.getCode(), kakaoOauthInfo);
@@ -39,7 +42,7 @@ public class UserController {
 
         long userId = userService.processLogin(kakaoLoggedInUser);
 
-        session.setAttribute("userId", userId);
+        Date expiredDate = new Date(new Date().getTime() + 360000000);
 
         return ResponseEntity
                 .ok()
@@ -47,21 +50,7 @@ public class UserController {
                         "success",
                         200,
                         "카카오 로그인 성공",
-                        null));
-    }
-
-    @PostMapping("/users/logout")
-    public ResponseEntity<CustomResponse> logout(HttpSession session) {
-
-        session.invalidate();
-
-        return ResponseEntity
-                .ok()
-                .body(new CustomResponse<>(
-                        "success",
-                        200,
-                        "로그아웃 성공",
-                        null));
+                        userService.userToJwtToken(userId, expiredDate)));
     }
 
     @GetMapping("/users/workoutInfo")
@@ -160,5 +149,20 @@ public class UserController {
                         200,
                         "유저 근감소증 상태 업데이트 성공",
                         null));
+    }
+
+    @GetMapping("/users/exercises")
+    public ResponseEntity<CustomResponse<List<ExerciseResponse>>> getExercises(@RequestAttribute Long userId) {
+        log.info("userId : {}", userId);
+
+        List<ExerciseResponse> exercises = userService.findExercises(userId);
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 운동 기록 조회 성공",
+                        exercises));
     }
 }

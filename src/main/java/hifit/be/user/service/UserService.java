@@ -5,11 +5,19 @@ import hifit.be.user.dto.response.*;
 import hifit.be.user.entity.HealthInformation;
 import hifit.be.user.entity.Sarcopenia;
 import hifit.be.user.entity.User;
+import hifit.be.user.entity.WorkoutSession;
+import hifit.be.user.jwt.JwtUtil;
 import hifit.be.user.repository.HealthInformationRepository;
 import hifit.be.user.repository.UserRepository;
+import hifit.be.user.repository.WorkoutSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +25,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final HealthInformationRepository healthInformationRepository;
+    private final WorkoutSessionRepository workoutSessionRepository;
+    private final JwtUtil jwtUtil;
 
     public User findBySocialId(Long socialId) {
 
@@ -43,7 +53,8 @@ public class UserService {
 
     public UserWorkoutInfo findUserWorkoutInfo(Long id) {
 
-        return UserWorkoutInfo.of(findById(id));
+        int workoutCount = workoutSessionRepository.countWorkoutSessionsThisMonthByUserId(id);
+        return UserWorkoutInfo.of(findById(id), workoutCount);
     }
 
     public UserBodyInfo findBodyInfo(Long id) {
@@ -57,7 +68,6 @@ public class UserService {
         if (currentWeight == null) {
             return UserBodyInfo.of(null, null, null, null);
         }
-
 
         Double currentHeight = healthInfo.getHeight();
 
@@ -85,9 +95,18 @@ public class UserService {
     @Transactional
     public void addStamp(Long id) {
 
-        //TODO : 에러 핸들링
-        User user = findById(id);
-        user.addStamp();
+        WorkoutSession workout = WorkoutSession.builder()
+                .user(findById(id))
+                .workoutDate(LocalDate.now())
+                .build();
+
+        workoutSessionRepository.findWorkoutSessionByUserIdAndDate(id, LocalDate.now())
+                .ifPresentOrElse(
+                        workoutSession -> {
+                            throw new IllegalArgumentException("[ERROR] 이미 운동을 하셨습니다.");
+                        },
+                        () -> workoutSessionRepository.save(workout)
+                );
     }
 
     @Transactional
@@ -134,5 +153,30 @@ public class UserService {
         }
 
         return user.getId();
+    }
+
+    public JwtResponse userToJwtToken(Long userId, Date expiredDate) {
+
+        LoggedInUser user = LoggedInUser.builder()
+                .id(userId)
+                .build();
+
+        String token = jwtUtil.createToken(user, expiredDate);
+
+        return JwtResponse.builder()
+                .code(token)
+                .build();
+    }
+
+    public List<ExerciseResponse> findExercises(Long userId) {
+
+        List<WorkoutSession> workouts = workoutSessionRepository.findWorkoutSessionsByUserIdThisMonth(userId);
+        List<ExerciseResponse> exerciseResponses = new ArrayList<>();
+
+        for (WorkoutSession workout : workouts) {
+            exerciseResponses.add(ExerciseResponse.of(workout));
+        }
+
+        return exerciseResponses;
     }
 }

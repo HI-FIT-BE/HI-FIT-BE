@@ -13,11 +13,11 @@ public class UserWorkoutInfo {
     private int stamp;
     private int targetStamp;
 
-    public static UserWorkoutInfo of(User user) {
+    public static UserWorkoutInfo of(User user, int stamp) {
 
         return UserWorkoutInfo.builder()
                 .name(user.getName())
-                .stamp(user.getStamp())
+                .stamp(stamp)
                 .targetStamp(20)
                 .build();
     }

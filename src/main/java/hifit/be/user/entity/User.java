@@ -20,17 +20,4 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private int age;
-    private int stamp;
-
-
-    public void addStamp() {
-
-        this.stamp++;
-
-        if (this.stamp > 20) {
-            throw new IllegalArgumentException("[ERROR] 스탬프 최대 개수를 초과했습니다.");
-        }
-    }
-
-
 }
