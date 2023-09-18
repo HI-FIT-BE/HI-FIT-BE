@@ -4,55 +4,44 @@ import hifit.be.user.dto.request.*;
 import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
 import hifit.be.user.dto.token.OauthToken;
-import hifit.be.user.entity.Gender;
-import hifit.be.user.entity.Sarcopenia;
-import hifit.be.user.entity.User;
-import hifit.be.user.exception.InvalidLoginCodeException;
 import hifit.be.user.service.OauthLoginService;
 import hifit.be.user.service.UserService;
 import hifit.be.util.CustomResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.servlet.http.HttpSession;
+import java.util.Date;
+import java.util.List;
 
 @Tag(name = "User", description = "사용자 API")
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 public class UserController {
 
     private final OauthLoginService oauthLoginService;
     private final UserService userService;
     private final KakaoOauthInfo kakaoOauthInfo;
-    private User mockUser = User.builder()
-            .id(1L)
-            .socialId(123456789L)
-            .name("mockUser")
-            .age(43)
-            .gender(Gender.MALE)
-            .phoneNumber("010-1234-5678")
-            .stamp(0)
-            .build();
-
 
     @PostMapping("/users/oauth/login")
-    public ResponseEntity<CustomResponse> kakaoLogin(HttpSession session, @RequestBody LoginCodeRequest code) {
-
+    public ResponseEntity<CustomResponse<JwtResponse>> kakaoLogin(@RequestBody LoginCodeRequest code) {
+        log.info("로그인 시작");
         OauthToken kakaoAccessToken;
-
         try {
             kakaoAccessToken = oauthLoginService.getOauthToken(code.getCode(), kakaoOauthInfo);
         } catch (HttpClientErrorException e) {
-            throw new InvalidLoginCodeException("[ERROR] 로그인 코드가 유효하지 않습니다.");
+            throw new IllegalArgumentException("[ERROR] 로그인 코드가 유효하지 않습니다.");
         }
 
         KakaoLoginResponse kakaoLoggedInUser = oauthLoginService.processKakaoLogin(kakaoAccessToken.getAccessToken(), kakaoOauthInfo.getLoginUri());
 
-        // TODO : DB에서 없으면 회원가입, 있으면 로그인
-        // TODO : 세션 설정
+        long userId = userService.processLogin(kakaoLoggedInUser);
+
+        Date expiredDate = new Date(new Date().getTime() + 360000000);
 
         return ResponseEntity
                 .ok()
@@ -60,28 +49,13 @@ public class UserController {
                         "success",
                         200,
                         "카카오 로그인 성공",
-                        null));
-    }
-
-    @PostMapping("/users/logout")
-    public ResponseEntity<CustomResponse> logout(HttpSession session) {
-
-        session.invalidate();
-
-        return ResponseEntity
-                .ok()
-                .body(new CustomResponse<>(
-                        "success",
-                        200,
-                        "로그아웃 성공",
-                        null));
+                        userService.userToJwtToken(userId, expiredDate)));
     }
 
     @GetMapping("/users/workoutInfo")
-    public ResponseEntity<CustomResponse<UserWorkoutInfo>> getWorkoutInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserWorkoutInfo>> getWorkoutInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserWorkoutInfo userWorkoutInfo = userService.findUserWorkoutInfo(mockUser.getId());
+        UserWorkoutInfo userWorkoutInfo = userService.findUserWorkoutInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -93,10 +67,9 @@ public class UserController {
     }
 
     @GetMapping("/users/bodyInfo")
-    public ResponseEntity<CustomResponse<UserBodyInfo>> getBodyInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserBodyInfo>> getBodyInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserBodyInfo userBodyInfo = userService.findBodyInfo(mockUser.getId());
+        UserBodyInfo userBodyInfo = userService.findBodyInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -108,10 +81,9 @@ public class UserController {
     }
 
     @GetMapping("/users/surveyInfo")
-    public ResponseEntity<CustomResponse<UserSurveyInfo>> getSurveyInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserSurveyInfo>> getSurveyInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserSurveyInfo userSurveyInfo = userService.findSurveyInfo(mockUser.getId());
+        UserSurveyInfo userSurveyInfo = userService.findSurveyInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -123,10 +95,9 @@ public class UserController {
     }
 
     @GetMapping("/users/healthStatusInfo")
-    public ResponseEntity<CustomResponse<UserHealthStatusInfo>> getHealthStatusInfo(HttpSession session) {
+    public ResponseEntity<CustomResponse<UserHealthStatusInfo>> getHealthStatusInfo(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        UserHealthStatusInfo userHealthStatusInfo = userService.findHealthStatusInfo(mockUser.getId());
+        UserHealthStatusInfo userHealthStatusInfo = userService.findHealthStatusInfo(userId);
 
         return ResponseEntity
                 .ok()
@@ -138,10 +109,9 @@ public class UserController {
     }
 
     @PatchMapping("/users/stamps")
-    public ResponseEntity<CustomResponse> addStamp(HttpSession session) {
+    public ResponseEntity<CustomResponse> addStamp(@RequestAttribute Long userId) {
 
-        //TODO : 세션에서 조회하도록 수정
-        userService.addStamp(mockUser.getId());
+        userService.addStamp(userId);
 
         return ResponseEntity
                 .ok()
@@ -153,11 +123,9 @@ public class UserController {
     }
 
     @PatchMapping("/users/healthInfo")
-    public ResponseEntity<CustomResponse> updateHealthInfo(HttpSession session, @RequestBody HealthInfoRequest healthInfo) {
+    public ResponseEntity<CustomResponse> updateHealthInfo(@RequestAttribute Long userId, @RequestBody HealthInfoRequest healthInfo) {
 
-        //TODO: 세션에서 조회하도록 수정
-        long id = 1L;
-        userService.updateHealthInfo(id, healthInfo);
+        userService.updateHealthInfo(userId, healthInfo);
 
         return ResponseEntity
                 .ok()
@@ -169,10 +137,9 @@ public class UserController {
     }
 
     @PatchMapping("/users/sarcopenia")
-    public ResponseEntity<CustomResponse> updateSarcopenia(HttpSession session, @RequestBody SarcopeniaRequest sarcopeniaRequest) {
+    public ResponseEntity<CustomResponse> updateSarcopenia(@RequestAttribute Long userId, @RequestBody SarcopeniaRequest sarcopeniaRequest) {
 
-        //TODO : 세션에서 조회하도록 수정
-        userService.updateSarcopenia(mockUser.getId(), sarcopeniaRequest.getSarcopenia());
+        userService.updateSarcopenia(userId, sarcopeniaRequest.getSarcopenia());
 
         return ResponseEntity
                 .ok()
@@ -181,5 +148,34 @@ public class UserController {
                         200,
                         "유저 근감소증 상태 업데이트 성공",
                         null));
+    }
+
+    @GetMapping("/users/exercises")
+    public ResponseEntity<CustomResponse<List<ExerciseResponse>>> getExercises(@RequestAttribute Long userId) {
+        log.info("userId : {}", userId);
+
+        List<ExerciseResponse> exercises = userService.findExercises(userId);
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 운동 기록 조회 성공",
+                        exercises));
+    }
+
+    @GetMapping("/users/diet")
+    public ResponseEntity<CustomResponse<DietResponse>> getDiet(@RequestAttribute Long userId) {
+
+        DietResponse diet = userService.findDiet(userId);
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 식단 조회 성공",
+                        diet));
     }
 }
