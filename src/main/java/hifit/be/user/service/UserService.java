@@ -51,10 +51,13 @@ public class UserService {
         return userRepository.existsBySocialId(socialId);
     }
 
+    @Transactional
     public UserWorkoutInfo findUserWorkoutInfo(Long id) {
 
         int workoutCount = workoutSessionRepository.countWorkoutSessionsThisMonthByUserId(id);
-        return UserWorkoutInfo.of(findById(id), workoutCount);
+        User user = findById(id);
+
+        return UserWorkoutInfo.of(user, workoutCount);
     }
 
     public UserBodyInfo findBodyInfo(Long id) {
@@ -94,9 +97,9 @@ public class UserService {
 
     @Transactional
     public void addStamp(Long id) {
-
+        User user = findById(id);
         WorkoutSession workout = WorkoutSession.builder()
-                .user(findById(id))
+                .user(user)
                 .workoutDate(LocalDate.now())
                 .build();
 
@@ -107,6 +110,9 @@ public class UserService {
                         },
                         () -> workoutSessionRepository.save(workout)
                 );
+
+        int stamp = workoutSessionRepository.countWorkoutSessionsThisMonthByUserId(id);
+        updatePoint(user, stamp);
     }
 
     @Transactional
@@ -136,7 +142,7 @@ public class UserService {
     public long processLogin(KakaoLoginResponse kakaoLoginResponse) {
 
         User user;
-        try{
+        try {
             // DB에 이미 존재할 경우 로그인 진행
             user = findBySocialId(kakaoLoginResponse.getId());
         } catch (IllegalArgumentException e) {
@@ -145,6 +151,7 @@ public class UserService {
                     .socialId(kakaoLoginResponse.getId())
                     .name(kakaoLoginResponse.getKakaoAccount().getName())
                     .phoneNumber(kakaoLoginResponse.getKakaoAccount().getPhoneNumber())
+                    .point(0)
                     .build());
 
             healthInformationRepository.save(HealthInformation.builder()
@@ -213,5 +220,21 @@ public class UserService {
     private int calculateProtein(double weight) {
 
         return (int) (weight * 1.2);
+    }
+
+    private void updatePoint(User user, int stamp) {
+
+        if (stamp == 3) {
+            user.updatePoint(100);
+        }
+        if (stamp == 5) {
+            user.updatePoint(200);
+        }
+        if (stamp == 10) {
+            user.updatePoint(500);
+        }
+        if (stamp == 20) {
+            user.updatePoint(1000);
+        }
     }
 }

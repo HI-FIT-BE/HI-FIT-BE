@@ -4,7 +4,6 @@ import hifit.be.user.dto.request.*;
 import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
 import hifit.be.user.dto.token.OauthToken;
-import hifit.be.user.exception.InvalidLoginCodeException;
 import hifit.be.user.service.OauthLoginService;
 import hifit.be.user.service.UserService;
 import hifit.be.util.CustomResponse;
@@ -35,7 +34,7 @@ public class UserController {
         try {
             kakaoAccessToken = oauthLoginService.getOauthToken(code.getCode(), kakaoOauthInfo);
         } catch (HttpClientErrorException e) {
-            throw new InvalidLoginCodeException("[ERROR] 로그인 코드가 유효하지 않습니다.");
+            throw new IllegalArgumentException("[ERROR] 로그인 코드가 유효하지 않습니다.");
         }
 
         KakaoLoginResponse kakaoLoggedInUser = oauthLoginService.processKakaoLogin(kakaoAccessToken.getAccessToken(), kakaoOauthInfo.getLoginUri());

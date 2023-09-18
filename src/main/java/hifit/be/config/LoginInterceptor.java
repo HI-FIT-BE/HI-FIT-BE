@@ -26,6 +26,11 @@ public class LoginInterceptor implements HandlerInterceptor {
             throw new IllegalArgumentException("Authorization header is null");
         }
 
+        if (request.getHeader("Authorization").split(" ").length != 2) {
+            log.info("Authorization header is not Bearer type");
+            throw new IllegalArgumentException("Authorization header is not Bearer type");
+        }
+
         String token = request.getHeader("Authorization").split(" ")[1];
         if (!request.getHeader("Authorization").split(" ")[0].equals("Bearer")) {
             throw new IllegalArgumentException("Authorization header is not Bearer type");

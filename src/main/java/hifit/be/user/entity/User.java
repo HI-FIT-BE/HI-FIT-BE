@@ -20,4 +20,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private int age;
+    private int point;
+
+    public void updatePoint(int point) {
+
+        this.point += point;
+    }
 }
