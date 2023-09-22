@@ -19,7 +19,7 @@ public class User {
     private String phoneNumber;
     @Enumerated(EnumType.STRING)
     private Gender gender;
-    private int age;
+    private Integer age;
     private int point;
 
     public void updatePoint(int point) {

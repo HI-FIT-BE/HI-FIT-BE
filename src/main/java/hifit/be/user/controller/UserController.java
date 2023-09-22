@@ -29,19 +29,11 @@ public class UserController {
 
     @PostMapping("/users/oauth/login")
     public ResponseEntity<CustomResponse<JwtResponse>> kakaoLogin(@RequestBody LoginCodeRequest code) {
-        log.info("로그인 시작");
-        OauthToken kakaoAccessToken;
-        try {
-            kakaoAccessToken = oauthLoginService.getOauthToken(code.getCode(), kakaoOauthInfo);
-        } catch (HttpClientErrorException e) {
-            throw new IllegalArgumentException("[ERROR] 로그인 코드가 유효하지 않습니다.");
-        }
-
-        KakaoLoginResponse kakaoLoggedInUser = oauthLoginService.processKakaoLogin(kakaoAccessToken.getAccessToken(), kakaoOauthInfo.getLoginUri());
+        KakaoLoginResponse kakaoLoggedInUser = oauthLoginService.processKakaoLogin(code.getCode(), kakaoOauthInfo.getLoginUri());
 
         long userId = userService.processLogin(kakaoLoggedInUser);
 
-        Date expiredDate = new Date(new Date().getTime() + 360000000);
+        Date expiredDate = new Date(new Date().getTime() + 3600000);
 
         return ResponseEntity
                 .ok()
