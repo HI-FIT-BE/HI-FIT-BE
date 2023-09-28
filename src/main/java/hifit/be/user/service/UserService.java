@@ -120,6 +120,9 @@ public class UserService {
 
         HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
         healthInfo.updateHealthInfo(healthInfoRequest);
+
+        User user = findById(id);
+        user.updateAgeGender(healthInfoRequest.getAge(), healthInfoRequest.getGender());
     }
 
     @Transactional

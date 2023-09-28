@@ -26,4 +26,10 @@ public class User {
 
         this.point += point;
     }
+
+    public void updateAgeGender(Integer age, Gender gender) {
+
+        this.age = age;
+        this.gender = gender;
+    }
 }
