@@ -116,10 +116,10 @@ public class UserService {
     }
 
     @Transactional
-    public void updateHealthInfo(Long id, HealthInfoRequest healthInfoRequest) {
+    public void updateHealthInfo(Long id, HealthInfoRequest healthInfoRequest, Sarcopenia sarcopenia) {
 
         HealthInformation healthInfo = findByUserIdFromHealthInfo(id);
-        healthInfo.updateHealthInfo(healthInfoRequest);
+        healthInfo.updateHealthInfo(healthInfoRequest, sarcopenia);
 
         User user = findById(id);
         user.updateAgeGender(healthInfoRequest.getAge(), healthInfoRequest.getGender());

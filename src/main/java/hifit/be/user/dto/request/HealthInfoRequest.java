@@ -20,4 +20,15 @@ public class HealthInfoRequest {
     private Double diastolicBloodPressure;
     private Integer heartRate;
     private Double waistSize;
+
+    /** 아래의 필드는
+     전혀 어렵지 않다 0
+     좀 어렵다 1
+     너무 힘들다 2
+     라는 값으로 받아서 계산식에 들어갑니다.
+     */
+    private int stairs;
+    private int walkChairToChair;
+    private int walkSideToSide;
+    private int liftPear;
 }

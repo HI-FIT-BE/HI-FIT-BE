@@ -28,7 +28,7 @@ public class HealthInformation {
     private Sarcopenia sarcopenia;
 
 
-    public void updateHealthInfo(HealthInfoRequest healthInfoRequest) {
+    public void updateHealthInfo(HealthInfoRequest healthInfoRequest, Sarcopenia sarcopenia) {
 
         this.height = healthInfoRequest.getHeight();
         this.weight = healthInfoRequest.getWeight();
@@ -36,6 +36,7 @@ public class HealthInformation {
         this.diastolicBloodPressure = healthInfoRequest.getDiastolicBloodPressure();
         this.heartRate = healthInfoRequest.getHeartRate();
         this.waistSize = healthInfoRequest.getWaistSize();
+        this.sarcopenia = sarcopenia;
     }
 
     public void updateSarcopenia(Sarcopenia sarcopenia) {

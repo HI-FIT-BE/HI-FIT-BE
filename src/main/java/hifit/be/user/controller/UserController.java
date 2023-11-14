@@ -3,7 +3,7 @@ package hifit.be.user.controller;
 import hifit.be.user.dto.request.*;
 import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
-import hifit.be.user.dto.token.OauthToken;
+import hifit.be.user.entity.Sarcopenia;
 import hifit.be.user.service.OauthLoginService;
 import hifit.be.user.service.SarcopeniaService;
 import hifit.be.user.service.UserService;
@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Date;
 import java.util.List;
@@ -119,7 +118,8 @@ public class UserController {
     @PatchMapping("/users/healthInfo")
     public ResponseEntity<CustomResponse> updateHealthInfo(@RequestAttribute Long userId, @RequestBody HealthInfoRequest healthInfo) {
 
-        userService.updateHealthInfo(userId, healthInfo);
+        Sarcopenia sarcopenia = sarcopeniaService.getSarcopenia(healthInfo);
+        userService.updateHealthInfo(userId, healthInfo, sarcopenia);
 
         return ResponseEntity
                 .ok()
@@ -127,7 +127,7 @@ public class UserController {
                         "success",
                         200,
                         "유저 건강 정보 업데이트 성공",
-                        null));
+                        sarcopenia));
     }
 
     @PatchMapping("/users/sarcopenia")
@@ -173,4 +173,19 @@ public class UserController {
                         diet));
     }
 
+    @PatchMapping("/test")
+    public ResponseEntity<CustomResponse> test(@RequestBody HealthInfoRequest healthInfo) {
+
+        long userId = 3;
+        Sarcopenia sarcopenia = sarcopeniaService.getSarcopenia(healthInfo);
+        userService.updateHealthInfo(userId, healthInfo, sarcopenia);
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 건강 정보 업데이트 성공",
+                        sarcopenia));
+    }
 }
