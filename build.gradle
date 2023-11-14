@@ -35,6 +35,9 @@ dependencies {
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
+	// Apache Commons Exec 추가
+	implementation 'org.apache.commons:commons-exec:1.3'
 }
 
 tasks.named('test') {

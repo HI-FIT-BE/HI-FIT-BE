@@ -5,6 +5,7 @@ import hifit.be.user.dto.response.*;
 import hifit.be.user.dto.token.KakaoOauthInfo;
 import hifit.be.user.dto.token.OauthToken;
 import hifit.be.user.service.OauthLoginService;
+import hifit.be.user.service.SarcopeniaService;
 import hifit.be.user.service.UserService;
 import hifit.be.util.CustomResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +27,7 @@ public class UserController {
     private final OauthLoginService oauthLoginService;
     private final UserService userService;
     private final KakaoOauthInfo kakaoOauthInfo;
+    private final SarcopeniaService sarcopeniaService;
 
     @PostMapping("/users/oauth/login")
     public ResponseEntity<CustomResponse<JwtResponse>> kakaoLogin(@RequestBody LoginCodeRequest code) {
@@ -170,4 +172,5 @@ public class UserController {
                         "유저 식단 조회 성공",
                         diet));
     }
+
 }
