@@ -34,6 +34,7 @@ public class UserHealthStatusInfo {
                 .diastolicBloodPressure(healthInformation.getDiastolicBloodPressure())
                 .heartRate(healthInformation.getHeartRate())
                 .waistSize(healthInformation.getWaistSize())
+                .sarcopenia(healthInformation.getSarcopenia())
                 .build();
     }
 }
