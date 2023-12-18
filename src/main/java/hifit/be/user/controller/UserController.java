@@ -101,6 +101,7 @@ public class UserController {
                         userHealthStatusInfo));
     }
 
+    // 운동 인증 완료 후 보너스 50포인트 적립
     @PatchMapping("/users/stamps")
     public ResponseEntity<CustomResponse> addStamp(@RequestAttribute Long userId) {
 
@@ -171,21 +172,5 @@ public class UserController {
                         200,
                         "유저 식단 조회 성공",
                         diet));
-    }
-
-    @PatchMapping("/test")
-    public ResponseEntity<CustomResponse> test(@RequestBody HealthInfoRequest healthInfo) {
-
-        long userId = 3;
-        Sarcopenia sarcopenia = sarcopeniaService.getSarcopenia(healthInfo);
-        userService.updateHealthInfo(userId, healthInfo, sarcopenia);
-
-        return ResponseEntity
-                .ok()
-                .body(new CustomResponse<>(
-                        "success",
-                        200,
-                        "유저 건강 정보 업데이트 성공",
-                        sarcopenia));
     }
 }

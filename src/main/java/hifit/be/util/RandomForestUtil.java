@@ -27,7 +27,7 @@ public class RandomForestUtil {
 
         // Python 스크립트와 함께 입력 데이터를 전달
         CommandLine cmdLine = new CommandLine("python3");
-        cmdLine.addArgument("/Users/birdie/Desktop/HI-FIT-BE/src/main/java/sarcopenia/Model_Random_Forest/predict_sarcopenia.py");
+        cmdLine.addArgument("/home/ubuntu/sarcopenia/Model_Random_Forest/predict_sarcopenia.py");
         cmdLine.addArgument(inputData, false);  // false는 인자를 그대로 사용하라는 의미입니다.
 
         // CommandLine 객체 출력

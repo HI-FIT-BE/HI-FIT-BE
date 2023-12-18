@@ -239,5 +239,6 @@ public class UserService {
         if (stamp == 20) {
             user.updatePoint(1000);
         }
+        user.updatePoint(50);
     }
 }
