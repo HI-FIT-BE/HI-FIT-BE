@@ -27,6 +27,7 @@ public class UserService {
     private final HealthInformationRepository healthInformationRepository;
     private final WorkoutSessionRepository workoutSessionRepository;
     private final JwtUtil jwtUtil;
+    private final WorkoutService workoutService;
 
     public User findBySocialId(Long socialId) {
 
@@ -202,8 +203,6 @@ public class UserService {
         Double height = healthInfo.getHeight();
         double targetWeight = calculateTargetWeight(height);
 
-        System.out.println(targetWeight);
-
         // 계란 두부는 8g, 닭가슴살 100g으로 계산
         return DietResponse.builder()
                 .calorie(calculateCalorie(targetWeight, height))
@@ -239,6 +238,18 @@ public class UserService {
         if (stamp == 20) {
             user.updatePoint(1000);
         }
+    }
+
+    @Transactional
+    public void addPoints(Long userId) {
+
+        if (workoutService.checkWorkoutStatus(userId, LocalDate.now())) {
+            throw new IllegalArgumentException("[ERROR] 이미 운동 후 적립된 포인트가 있습니다.");
+        }
+
+        User user = findById(userId);
         user.updatePoint(50);
+
+        workoutService.saveWorkout(userId, LocalDate.now());
     }
 }

@@ -7,6 +7,7 @@ import hifit.be.user.entity.Sarcopenia;
 import hifit.be.user.service.OauthLoginService;
 import hifit.be.user.service.SarcopeniaService;
 import hifit.be.user.service.UserService;
+import hifit.be.user.service.WorkoutService;
 import hifit.be.util.CustomResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public class UserController {
     private final UserService userService;
     private final KakaoOauthInfo kakaoOauthInfo;
     private final SarcopeniaService sarcopeniaService;
+    private final WorkoutService workOutService;
 
     @PostMapping("/users/oauth/login")
     public ResponseEntity<CustomResponse<JwtResponse>> kakaoLogin(@RequestBody LoginCodeRequest code) {
@@ -101,7 +105,7 @@ public class UserController {
                         userHealthStatusInfo));
     }
 
-    // 운동 인증 완료 후 보너스 50포인트 적립
+    // 운동 영상을 시청할 경우 스탬프 적립
     @PatchMapping("/users/stamps")
     public ResponseEntity<CustomResponse> addStamp(@RequestAttribute Long userId) {
 
@@ -115,6 +119,35 @@ public class UserController {
                         "유저 스탬프 적립 성공",
                         null));
     }
+
+    // 오늘 운동 여부 조회
+    @GetMapping("/users/workoutStatus")
+    public ResponseEntity<CustomResponse<Boolean>> checkWorkoutStatus(@RequestAttribute Long userId) {
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 운동 상태 조회 성공",
+                        workOutService.checkWorkoutStatus(userId, LocalDate.now())));
+    }
+
+    // 오늘 운동을 하지 않은 경우 운동 기록 저장하고, 50포인트 적립
+    @PostMapping("/users/points")
+    public ResponseEntity<CustomResponse<Void>> addPoints(@RequestAttribute Long userId) {
+
+        userService.addPoints(userId);
+
+        return ResponseEntity
+                .ok()
+                .body(new CustomResponse<>(
+                        "success",
+                        200,
+                        "유저 포인트 적립 성공",
+                        null));
+    }
+
 
     @PatchMapping("/users/healthInfo")
     public ResponseEntity<CustomResponse> updateHealthInfo(@RequestAttribute Long userId, @RequestBody HealthInfoRequest healthInfo) {
